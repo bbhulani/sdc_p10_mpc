@@ -13,7 +13,9 @@ class MPC {
 
 	int iter;
   virtual ~MPC();
-	VectorXd state;	
+
+  vector<double> x_vals = {};
+  vector<double> y_vals = {};
 
   // Solve the model given an initial state and polynomial coefficients.
   // Return the first actuatotions.

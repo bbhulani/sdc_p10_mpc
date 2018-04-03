@@ -142,9 +142,7 @@ class FG_eval {
 //
 // MPC class definition implementation.
 //
-MPC::MPC() {
-	state = VectorXd(6);
-}
+MPC::MPC() {}
 
 MPC::~MPC() {}
 
@@ -261,8 +259,20 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   auto cost = solution.obj_value;
   std::cout << "Cost " << cost << std::endl;
-  return {solution.x[x_start + 1],   solution.x[y_start + 1],
-          solution.x[psi_start + 1], solution.x[v_start + 1],
-          solution.x[cte_start + 1], solution.x[epsi_start + 1],
-          solution.x[delta_start],   solution.x[a_start]};
+
+	x_vals = {};
+	y_vals = {};
+	for(int i=x_start+2; i < y_start; i++) {
+		x_vals.push_back(solution.x[i]);
+	}
+	for(int i=y_start+2; i < psi_start; i++) {
+		y_vals.push_back(solution.x[i]);
+	}
+
+	// Starting from index 2 since index 0 is for cost function
+	// and index 1 of each state vactor variable is 100ms behind
+  return {solution.x[x_start + 2],   solution.x[y_start + 2],
+          solution.x[psi_start + 2], solution.x[v_start + 2],
+          solution.x[cte_start + 2], solution.x[epsi_start + 2],
+          solution.x[delta_start + 1],   solution.x[a_start + 1]};
 }
