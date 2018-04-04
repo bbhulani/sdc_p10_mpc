@@ -5,28 +5,44 @@ Self-Driving Car Engineer Nanodegree Program
 The model used is a Kinematic Model Preditive Control model that lets you predict the vehicles trajectory in the future. The number of timesteps N and delta between each timestep dt determine how long in time the prediction is. 
 
 The state of the vehicle is given by:
+
 <x, y, psi, velocity, cte, epsi>
+
 x - x position
+
 y - y position
+
 psi - car orientation
+
 v - velocity
+
 cte - cross track error
+
 epsi - psi error
 
 The actuators are the control input of the state and are represented by 
+
 delta - steering angle of the vehicle
+
 alpha(a) - acceleration/brake value of the vehicle
 
 I started with transforming the data given in map coordinates to vehicle coordinates. This puts the vehicle at origin. After transforming the coordinates the vehicle's current location is the origin, so x, y and psi are set to 0. This greatly simplifies the state to <0, 0, 0, v, psi, epsi>
 
 The state update equations are:
+      
       x_[t+1] = x[t] + v[t] * cos(psi[t]) * dt
+      
       y_[t+1] = y[t] + v[t] * sin(psi[t]) * dt
+      
       // Note if δ is positive we rotate counter-clockwise, or turn left.
       // In the simulator however, a positive value implies a right turn and a negative value implies a left turn
+      
       psi_[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
+      
       v_[t+1] = v[t] + a[t] * dt
+      
       cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
+      
       epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
       
 ## Timestep Length (N) and elapsed duration (dt)
