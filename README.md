@@ -1,6 +1,45 @@
 # CarND-Controls-MPC
 Self-Driving Car Engineer Nanodegree Program
 
+## Model: state, actuators, update equations
+The model used is a Kinematic Model Preditive Control model that lets you predict the vehicles trajectory in the future. The number of timesteps N and delta between each timestep dt determine how long in time the prediction is. 
+
+The state of the vehicle is given by:
+<x, y, psi, velocity, cte, epsi>
+x - x position
+y - y position
+psi - car orientation
+v - velocity
+cte - cross track error
+epsi - psi error
+
+The actuators are the control input of the state and are represented by 
+delta - steering angle of the vehicle
+alpha(a) - acceleration/brake value of the vehicle
+
+I started with transforming the data given in map coordinates to vehicle coordinates. This puts the vehicle at origin. After transforming the coordinates the vehicle's current location is the origin, so x, y and psi are set to 0. This greatly simplifies the state to <0, 0, 0, v, psi, epsi>
+
+The state update equations are:
+      x_[t+1] = x[t] + v[t] * cos(psi[t]) * dt
+      y_[t+1] = y[t] + v[t] * sin(psi[t]) * dt
+      // Note if δ is positive we rotate counter-clockwise, or turn left.
+      // In the simulator however, a positive value implies a right turn and a negative value implies a left turn
+      psi_[t+1] = psi[t] + v[t] / Lf * delta[t] * dt
+      v_[t+1] = v[t] + a[t] * dt
+      cte[t+1] = f(x[t]) - y[t] + v[t] * sin(epsi[t]) * dt
+      epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
+      
+## Timestep Length (N) and elapsed duration (dt)
+I set dt to be 0.1s since the latency of the car is 100ms and started with a value of 10 timesteps for N. I also attempted with dt=0.05 and N=15,20 but the resulting MPC trajectory didnt change much and it was not worth the add computational cost. With dt set to 0.1sec the latency problem can be solved very easily. 
+
+The total calcuated time is N * dt which lets you predict the vehicle trajectory for next 1 second. 
+
+## Polynomial fitting and MPC pre-processing
+The waypoints are first converted from maps coordinates to car coordinates and then fitted to a 3rd degree polynomial. This makes it easier to display the reference trajectory and the MPC trajectory in front of the vehicle. 
+
+## Latency
+A latency of 100ms is added because it takes about that much time for the car to execute the new control inputs. Since we predict the future trajectory and states of the vehicle, the state returned back to the simulator is 100ms in advance. 
+
 ---
 
 ## Dependencies
