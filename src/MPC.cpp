@@ -37,10 +37,11 @@ size_t epsi_start = cte_start + N;
 size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
-const int tuneErrs=100;
-const int tuneVelocity=20;
-const int tuneActuators=2000;
-const int tuneSeqActuations=10000;
+const int tuneVelocity=15;
+const int tuneThrottle=1000;
+const int tuneErrs=2000;
+const int tuneSteerAngle=9000;
+const int tuneSeqActuations=8000;
 
 class FG_eval {
  public:
@@ -65,8 +66,8 @@ class FG_eval {
 
     // Minimize the use of actuators.
     for (int t = 0; t < N - 1; t++) {
-      fg[0] += tuneActuators * CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += tuneActuators * CppAD::pow(vars[a_start + t], 2);
+      fg[0] += tuneSteerAngle * CppAD::pow(vars[delta_start + t], 2);
+      fg[0] += tuneThrottle * CppAD::pow(vars[a_start + t], 2);
     }
 
     // Minimize the value gap between sequential actuations.
@@ -114,8 +115,8 @@ class FG_eval {
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
 
-      AD<double> f0 = coeffs[0] + coeffs[1] * x0;
-      AD<double> psides0 = CppAD::atan(coeffs[1]);
+      AD<double> f0 = coeffs[0] + coeffs[1]*x0 + coeffs[2]*pow(x0,2) + coeffs[3]*pow(x0,3);
+      AD<double> psides0 = CppAD::atan(coeffs[1] + 2*x0*coeffs[2] + 3*pow(x0,2)*coeffs[3]);
 
       // Here's `x` to get you started.
       // The idea here is to constraint this value to be 0.
@@ -139,7 +140,7 @@ class FG_eval {
       fg[1 + cte_start + t] = cte1 - ((f0 - y0) + (v0 * CppAD::sin(epsi0) * dt));
 
       // epsi[t+1] = psi[t] - psides[t] + v[t] * delta[t] / Lf * dt
-      fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) + v0 * delta0 / Lf * dt);
+      fg[1 + epsi_start + t] = epsi1 - ((psi0 - psides0) - v0 * delta0 / Lf * dt);
     }
   }
 };

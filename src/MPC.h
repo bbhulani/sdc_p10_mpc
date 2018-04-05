@@ -11,7 +11,7 @@ class MPC {
  public:
   MPC();
 
-	int iter;
+  int iter;
   virtual ~MPC();
 
   vector<double> x_vals = {};

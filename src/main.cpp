@@ -70,7 +70,7 @@ int main() {
 
   // MPC is initialized here!
   MPC mpc;
-	mpc.iter= 0;
+  mpc.iter= 0;
 
   h.onMessage([&mpc](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                      uWS::OpCode opCode) {
@@ -99,39 +99,42 @@ int main() {
           */
           double steer_value;
           double throttle_value;
-					mpc.iter++;
+          mpc.iter++;
 
-					// Convert waypoints ptsx/ptsy from maps coordinates to car coordinates	
-					Eigen::VectorXd vptsx(ptsx.size());
-  				Eigen::VectorXd vptsy(ptsy.size());
-					for(int i=0; i < ptsx.size(); i++) {
-						vptsx[i] = (ptsx[i] - px) * cos(-psi) - (ptsy[i] - py) * sin(-psi);
-						vptsy[i] = (ptsx[i] - px) * sin(-psi) + (ptsy[i] - py) * cos(-psi);
-						//cout << "Map coordinates: " << ptsx[i] << ", " << ptsy[i] << endl;
-						//cout << "Car coordinates: " << vptsx[i] << ", " << vptsy[i] << endl;
-					}
-
-					// Fitting waypoints to a 3rd degree polynomial
-  				auto coeffs = polyfit(vptsx, vptsy, 3);
-					//cout << "coeffs = " << coeffs << endl;
-
-					// After coordinates are transformed px, py, psi are 0
-					px = py = psi = 0;
-
-					// The cross track error is calculated by evaluating polynomial at px, f(px)
- 					// and subtracting py.
- 					double cte = polyeval(coeffs, px) - py;
- 					// Due to the sign starting at 0, the orientation error is -f'(x).
- 					// derivative of coeffs[0] + coeffs[1] * x -> coeffs[1]
- 					double epsi = psi - atan(coeffs[1]);
-
-					Eigen::VectorXd state(6);
-					state << px, py, psi, v, cte, epsi;
-					//cout << "Initial state " << endl << state << endl;
-
-					auto vars = mpc.Solve(state, coeffs);
-					//state << vars[0], vars[1], vars[2], vars[3], vars[4], vars[5];
-					//cout << "New state " << endl << state << endl;
+          // Convert waypoints ptsx/ptsy from maps coordinates to car coordinates	
+          Eigen::VectorXd vptsx(ptsx.size());
+          Eigen::VectorXd vptsy(ptsy.size());
+          for(int i=0; i < ptsx.size(); i++) {
+            vptsx[i] = (ptsx[i] - px) * cos(-psi) - (ptsy[i] - py) * sin(-psi);
+            vptsy[i] = (ptsx[i] - px) * sin(-psi) + (ptsy[i] - py) * cos(-psi);
+            //cout << "Map coordinates: " << ptsx[i] << ", " << ptsy[i] << endl;
+            //cout << "Car coordinates: " << vptsx[i] << ", " << vptsy[i] << endl;
+          }
+ 
+          // Convert velocity to m/s
+          v = v * 0.447;
+          
+          // Fitting waypoints to a 3rd degree polynomial
+          auto coeffs = polyfit(vptsx, vptsy, 3);
+          //cout << "coeffs = " << coeffs << endl;
+          
+          // After coordinates are transformed px, py, psi are 0
+          px = py = psi = 0;
+          
+          // The cross track error is calculated by evaluating polynomial at px, f(px)
+          // and subtracting py.
+          double cte = polyeval(coeffs, px) - py;
+          // Due to the sign starting at 0, the orientation error is -f'(x).
+          // derivative of coeffs[0] + coeffs[1] * x -> coeffs[1]
+          double epsi = psi - atan(coeffs[1]);
+          
+          Eigen::VectorXd state(6);
+          state << px, py, psi, v, cte, epsi;
+          //cout << "Initial state " << endl << state << endl;
+          
+          auto vars = mpc.Solve(state, coeffs);
+          //state << vars[0], vars[1], vars[2], vars[3], vars[4], vars[5];
+          //cout << "New state " << endl << state << endl;
           steer_value = vars[6];
           throttle_value = vars[7];
 
@@ -153,10 +156,10 @@ int main() {
 
           //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
           // the points in the simulator are connected by a Yellow line
-					for(int i=1; i < ptsx.size(); i++) {
-						next_x_vals.push_back(vptsx[i]);
-						next_y_vals.push_back(vptsy[i]);
-					}
+          for(int i=1; i < ptsx.size(); i++) {
+            next_x_vals.push_back(vptsx[i]);
+            next_y_vals.push_back(vptsy[i]);
+          }
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
 
